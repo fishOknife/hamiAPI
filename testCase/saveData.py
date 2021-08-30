@@ -3,7 +3,7 @@ import requests
 from basicMethod.useExcel import getExcelData
 from basicMethod.useMysql import delData
 
-
+# 保存数据
 class saveData(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
