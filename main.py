@@ -7,7 +7,7 @@ if __name__ == "__main__":
     suite = unittest.TestSuite()
     loader = unittest.TestLoader()
 
-    suite.addTest(loader.loadTestsFromTestCase(saveData))
+    suite.addTest(loader.loadTestsFromTestCase(SaveData))
     # suite.addTest(loader.loadTestsFromTestCase())
     # suite.addTest(loader.loadTestsFromTestCase())
     # suite.addTest(loader.loadTestsFromTestCase())

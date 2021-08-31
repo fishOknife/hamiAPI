@@ -27,11 +27,6 @@ class SaveData(unittest.TestCase):
 
     def setUp(self) -> None:
         pass
-        # 执行一条测试用例，就将列表中的第一条数据pop出来
-        # self.oneCase = self.test_data.pop(0)
-        # self.requestUrl = self.oneCase["url"]
-        # self.requestData = self.oneCase["requestData"]
-        # self.responseData = self.oneCase["responseData"]
 
     def tearDown(self) -> None:
         pass
