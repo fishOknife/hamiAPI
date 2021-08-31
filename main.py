@@ -1,4 +1,4 @@
-from .testCase.saveData import saveData
+from .testCase.saveData import SaveData
 import HTMLTestRunner
 import unittest
 import time
