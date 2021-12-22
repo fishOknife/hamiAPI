@@ -1,5 +1,5 @@
-import logging
 from logging.handlers import RotatingFileHandler
+import logging
 import time
 import os
 
@@ -8,7 +8,7 @@ currentPath = os.path.abspath(__file__)
 parentPath = os.path.dirname(currentPath)
 superiorPath = os.path.dirname(parentPath)
 # 日志保存路径
-loggerPath = superiorPath+"/loggerData/"
+loggerPath = superiorPath + "/loggerData/"
 
 fmt = " %(asctime)s %(levelname)s %(filename)s %(funcName)s [ line:%(lineno)d ] %(message)s"
 datefmt = '%a, %d %b %Y %H:%M:%S'

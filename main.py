@@ -1,4 +1,5 @@
-from .testCase.saveData import SaveData
+# from .testCase.saveData import SaveData
+from testCase.orgManage import OrgManageClass
 import HTMLTestRunner
 import unittest
 import time
@@ -7,7 +8,7 @@ if __name__ == "__main__":
     suite = unittest.TestSuite()
     loader = unittest.TestLoader()
 
-    suite.addTest(loader.loadTestsFromTestCase(SaveData))
+    suite.addTest(loader.loadTestsFromTestCase(OrgManageClass))
     # suite.addTest(loader.loadTestsFromTestCase())
     # suite.addTest(loader.loadTestsFromTestCase())
     # suite.addTest(loader.loadTestsFromTestCase())
