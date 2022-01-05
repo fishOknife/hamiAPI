@@ -1,5 +1,5 @@
 import pandas as pd
-from basicMethod.basicInfo import *
+from getConfigInfo import *
 
 
 # 获取指定列数据保存至列表中（数据驱动ddt）
@@ -30,10 +30,8 @@ def get_excel_data(file_path, sheet_name):
 
 
 if __name__ == "__main__":
-    filePath = r"C:\Users\admin\Desktop\哈密\HMAPITest\testData\defaultData.xlsx"
     sheetName = "Sheet1"
-    testData = get_excel_data(defaultDataFilePath, sheetName)
+    testData = get_excel_data(defaultTestDataFile, sheetName)
     print(testData)
     # sheetName = "orgData"
     # testData = get_default_data(filePath, sheetName)
-

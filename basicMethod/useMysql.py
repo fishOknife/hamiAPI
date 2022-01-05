@@ -1,8 +1,9 @@
 import pymysql
+from getConfigInfo import *
 
 
 def connect_mysql(db):
-    conn = pymysql.connect(host="of.tobosoft.com.cn", port=8032, user="hami", password="kWS8^yg4bYNAP86x", db=db)
+    conn = pymysql.connect(host=host, port=port, user=user, password=password, db=db)
     cursor = conn.cursor()
     return conn, cursor
 
@@ -31,12 +32,21 @@ def query_id_from_table(table_name, field_name, values):
 
 # 删除业务系统、工作流机构信息
 def del_org_data():
-    # 删除业务系统信息
     conn, cursor = connect_mysql("hami_db_stg")
-    del_org_sql = "delete from hm_org where id >=41"
+    # 查询机构id，保存至列表，删除工作流中的机构时需要用到
+    org_id_tuple = ()
+    inquire_org_id = 'SELECT id from hm_org WHERE tenant_id="autoTest";'
+    cursor.execute(inquire_org_id)
+    org_id = cursor.fetchall()
+    for i in range(0, len(org_id)):
+        # print(user_account[i])
+        org_id_tuple = org_id_tuple + org_id[i]
+    # print("机构id列表：", org_id_tuple)
 
+    # 删除业务系统信息
+    del_hm_org = 'DELETE FROM hm_org WHERE tenant_id="autoTest";'
     try:
-        cursor.execute(del_org_sql)
+        cursor.execute(del_hm_org)
         conn.commit()
         print("删除业务系统机构信息成功")
     except:
@@ -49,7 +59,7 @@ def del_org_data():
 
     # 删除工作流信息
     conn, cursor = connect_mysql("hami_workflow_stg")
-    del_sys_org_sql = "delete from sys_org where CODE_ >=41"
+    del_sys_org_sql = f"delete from sys_org where CODE_ in {org_id_tuple}"
     try:
         cursor.execute(del_sys_org_sql)
         conn.commit()
@@ -66,16 +76,27 @@ def del_org_data():
 # 删除业务系统角色信息，角色菜单权限（角色信息未同步工作流，）
 def del_role_data():
     conn, cursor = connect_mysql("hami_db_stg")
-    del_role_sql = "delete from hm_role where id >=146"
-    del_role_menu_sql = "delete from hm_role_menu where role_id >=146"
+    # 查询机构id，保存至列表，删除工作流中的机构时需要用到
+    role_id_tuple = ()
+    inquire_role_id = 'SELECT id from hm_role WHERE tenant_id="autoTest";'
+    cursor.execute(inquire_role_id)
+    role_id = cursor.fetchall()
+    for i in range(0, len(role_id)):
+        # print(user_account[i])
+        role_id_tuple = role_id_tuple + role_id[i]
+    # print("机构id列表：", org_id_tuple)
+
+    # 删除业务系统信息
+    del_hm_role_menu = f"delete from hm_role_menu where role_id in {role_id_tuple}"
+    del_hm_role = 'delete from hm_role WHERE tenant_id="autoTest";'
     try:
-        cursor.execute(del_role_sql)
-        cursor.execute(del_role_menu_sql)
+        cursor.execute(del_hm_role_menu)
+        cursor.execute(del_hm_role)
         conn.commit()
-        print("删除角色信息成功")
+        print("删除业务系统角色信息成功")
     except:
         conn.rollback()
-        print("删除角色信息失败，回滚")
+        print("删除业务系统角色信息失败，回滚")
     finally:
         conn.close()
         cursor.close()
@@ -84,11 +105,22 @@ def del_role_data():
 
 # 删除岗位信息（业务系统、工作流）
 def del_position_data():
-    # 删除业务系统岗位信息
     conn, cursor = connect_mysql("hami_db_stg")
-    del_position_sql = "delete from hm_dictionary_detail where dic_id=4 and id>=294"
+    # 删除业务系统岗位信息
+    # 查询机构id，保存至列表，删除工作流中的机构时需要用到
+    position_code_tuple = ()
+    inquire_position_code = "SELECT detail_code FROM hm_dictionary_detail WHERE dic_id=4 AND remark LIKE '新增%';"
+    cursor.execute(inquire_position_code)
+    position_code = cursor.fetchall()
+    for i in range(0, len(position_code)):
+        # print(user_account[i])
+        position_code_tuple = position_code_tuple + position_code[i]
+    # print("机构id列表：", position_code_tuple)
+
+    # 删除业务系统信息
+    del_hm_position = 'DELETE FROM hm_dictionary_detail WHERE dic_id=4 AND remark LIKE "新增%";'
     try:
-        cursor.execute(del_position_sql)
+        cursor.execute(del_hm_position)
         conn.commit()
         print("删除业务系统岗位信息成功")
     except:
@@ -99,11 +131,11 @@ def del_position_data():
         cursor.close()
         print("关闭业务系统数据库链接")
 
-    # 删除业务系统岗位信息
+    # 删除工作流信息
     conn, cursor = connect_mysql("hami_workflow_stg")
-    del_position_sql = "delete from sys_org_rel where ID_>=10000003770727"
+    del_sys_org_rel_sql = f"delete from sys_org_rel where REL_CODE_ in {position_code_tuple}"
     try:
-        cursor.execute(del_position_sql)
+        cursor.execute(del_sys_org_rel_sql)
         conn.commit()
         print("删除工作流岗位信息成功")
     except:
@@ -115,8 +147,60 @@ def del_position_data():
         print("关闭工作流数据库链接")
 
 
+# 删除业务系统、工作流机构用户信息
+def del_org_user_data():
+    conn, cursor = connect_mysql("hami_db_stg")
+    # 查询account，保存至列表，删除工作流中的用户时需要用到
+    user_account_tuple = ()
+    inquire_user_account = 'SELECT account from hm_user WHERE tenant_id="autoTest";'
+    cursor.execute(inquire_user_account)
+    user_account = cursor.fetchall()
+    for i in range(0, len(user_account)):
+        # print(user_account[i])
+        user_account_tuple = user_account_tuple + user_account[i]
+    # print("机构用户账号列表：", user_account_tuple)
+
+    # 删除业务系统信息
+    del_hm_user_role = 'DELETE from hm_user_role WHERE user_id in (SELECT id FROM hm_user WHERE tenant_id="autoTest");'
+    del_hm_user_position = 'DELETE from hm_user_position WHERE user_id in (SELECT id FROM hm_user WHERE tenant_id="autoTest");'
+    del_hm_user = 'DELETE FROM hm_user WHERE tenant_id="autoTest";'
+    try:
+        cursor.execute(del_hm_user_role)
+        cursor.execute(del_hm_user_position)
+        cursor.execute(del_hm_user)
+        conn.commit()
+        print("删除业务系统机构用户信息成功")
+    except:
+        conn.rollback()
+        print("删除业务系统机构用户信息失败，回滚")
+    finally:
+        conn.close()
+        cursor.close()
+        print("关闭业务系统数据库链接")
+
+    # 删除工作流信息
+    conn, cursor = connect_mysql("hami_workflow_stg")
+    del_sys_user_sql = f"delete from sys_user where ACCOUNT_ in {user_account_tuple}"
+    try:
+        cursor.execute(del_sys_user_sql)
+        conn.commit()
+        print("删除工作流机构用户信息成功")
+    except:
+        conn.rollback()
+        print("删除工作流机构用户信息失败，回滚")
+    finally:
+        conn.close()
+        cursor.close()
+        print("关闭工作流数据库链接")
+
+
 if __name__ == "__main__":
-    query_org_code = ("GSB001", "GSB002", "GSB003", "GSB004", "GSB005", "GSB006", "GSB007", "GSB008", "GSB009")
-    queryResult = query_id_from_table("hm_org", "org_code", query_org_code)
-    print(queryResult)
+    # query_org_code = ("GSB001", "GSB002", "GSB003", "GSB004", "GSB005", "GSB006", "GSB007", "GSB008", "GSB009")
+    # queryResult = query_id_from_table("hm_org", "org_code", query_org_code)
+    # print(queryResult)
     # del_org_data()
+    # del_role_data()
+    # del_org_user_data()
+    # del_position_data()
+    # query_info("hm_org")
+    connect_mysql("hami_db_stg")

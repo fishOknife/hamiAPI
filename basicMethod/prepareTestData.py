@@ -1,6 +1,6 @@
 import json
 import requests
-from basicMethod.basicInfo import *
+from getConfigInfo import *
 from basicMethod.useMysql import query_id_from_table
 from basicMethod.useExcel import get_excel_data, get_default_data, get_test_data
 
@@ -10,7 +10,7 @@ def add_default_org_info():
     url = r"http://hami-test.tobowork.com:8026/stg/v1/system/org/addOrg"
     sheet_name = "orgData"
     # 从excel中获取数据
-    one_org_info = get_excel_data(defaultDataFilePath, sheet_name)
+    one_org_info = get_excel_data(defaultTestDataFile, sheet_name)
     for i in range(0, len(one_org_info)):
         res = requests.post(url, headers=header, json=one_org_info[i])
         print("调接口插入机构信息：", res.text)
@@ -21,9 +21,9 @@ def add_default_role_info():
     url = "http://hami-test.tobowork.com:8026/stg/v1/system/orgRole/addOrgRole"
     sheet_name = "roleData"
     # 从excel中获取数据
-    one_org_info = get_default_data(defaultDataFilePath, sheet_name)
-    for i in range(0, len(one_org_info)):
-        json_data = json.loads(one_org_info[i])
+    one_role_info = get_default_data(defaultTestDataFile, sheet_name)
+    for i in range(0, len(one_role_info)):
+        json_data = json.loads(one_role_info[i])
         res = requests.post(url, headers=header, json=json_data)
         print("调接口插入角色信息：", res.text)
 
@@ -33,10 +33,22 @@ def add_default_position_info():
     url = "http://hami-test.tobowork.com:8026/stg/v1/system/dictionaryDetail/dicDetailAdd"
     sheet_name = "positionData"
     # 从excel中获取数据
-    one_org_info = get_excel_data(defaultDataFilePath, sheet_name)
-    for i in range(0, len(one_org_info)):
-        res = requests.post(url, headers=header, json=one_org_info[i])
+    one_position_info = get_excel_data(defaultTestDataFile, sheet_name)
+    for i in range(0, len(one_position_info)):
+        res = requests.post(url, headers=header, json=one_position_info[i])
         print("调接口插入岗位信息：", res.text)
+
+
+# 添加默认机构用户信息
+def add_default_org_user_info():
+    url = "http://hami-test.tobowork.com:8026/stg/v1/system/user/addUser"
+    sheet_name = "orgUserData"
+    # 从excel中获取数据
+    one_org_user_info = get_default_data(defaultTestDataFile, sheet_name)
+    for i in range(0, len(one_org_user_info)):
+        json_data = json.loads(one_org_user_info[i])
+        res = requests.post(url, headers=header, json=json_data)
+        print("调接口插入机构用户信息：", res.text)
 
 
 # 修改测试数据ID
@@ -44,11 +56,12 @@ def get_test_data_and_change_id(change_id_data, id_list, restore_list):
     for i in range(0, len(change_id_data)):
         one_data = change_id_data.pop(0)
         # 判断是否为编辑机构，因为编辑机构需要根据ID修改
-        if "updateOrg" in one_data[1]:
+        if "update" in one_data[1]:
             # print("修改id前的数据：", one_data)
             # 提取需要修改ID的数据，并转为dict
             one_test_data = eval(one_data.pop(2))
             # 从ID列表中获取一条ID替换原ID
+            # print("ID列表：", id_list)
             one_test_data["id"] = id_list.pop(0)
             # 将修改后的数据插入到列表中
             # print(type(one_test_data))
@@ -85,12 +98,13 @@ def change_org_test_info():
     org_sheet_name = "orgManage"
     restore_org_list = []
     # 从excel中查询测试数据，保存至列表中
-    all_org_data = get_test_data(testDataFilePath, org_sheet_name)
+    all_org_data = get_test_data(testDataFile, org_sheet_name)
     changed_org_id_list = get_test_data_and_change_id(all_org_data, query_org_id_list, restore_org_list)
     # print("修改后的机构信息：", changed_org_id_list)
     return changed_org_id_list
 
 
+# 修改角色测试数据ID
 def change_role_test_info():
     # 修改角色ID
     role_name_list = ("T_业务经理", "T_权证跟单", "T_风控初审", "T_风控复审", "T_财务", "T_总经理")
@@ -99,12 +113,13 @@ def change_role_test_info():
     role_sheet_name = "roleManage"
     restore_role_list = []
     # 从excel中查询测试数据，保存至列表中
-    all_role_data = get_test_data(testDataFilePath, role_sheet_name)
+    all_role_data = get_test_data(testDataFile, role_sheet_name)
     changed_role_id_list = get_test_data_and_change_id(all_role_data, query_role_id_list, restore_role_list)
     # print("修改后的角色信息：", changed_role_id_list)
     return changed_role_id_list
 
 
+# 修改岗位测试数据ID
 def change_position_test_info():
     # 修改岗位ID
     detail_value_list = ("新增岗位1", "新增岗位2", "新增岗位3", "新增岗位4", "新增岗位5", "新增岗位6")
@@ -114,17 +129,44 @@ def change_position_test_info():
     position_sheet_name = "positionManage"
     restore_position_list = []
     # 从excel中查询测试数据，保存至列表中
-    all_position_data = get_test_data(testDataFilePath, position_sheet_name)
+    all_position_data = get_test_data(testDataFile, position_sheet_name)
     changed_position_id_list = get_test_data_and_change_id(all_position_data, query_position_id_list,
                                                            restore_position_list)
     # print("修改后的岗位信息：", changed_position_id_list)
     return changed_position_id_list
 
 
+# 修改机构用户测试数据ID
+def change_org_user_test_info():
+    # 修改机构ID
+    org_user_account_list = ("HMM01", "HMM02", "HMM03", "HMM04", "HMM05", "HMM06", "HMM07", "HMM08", "HMM09", "HMM10")
+    # 从数据库中查询id,保存至列表中
+    query_org_user_id_list = query_id_from_table("hm_user", "account", org_user_account_list)
+    org_user_sheet_name = "orgUserManage"
+    restore_org_user_list = []
+    # 从excel中查询测试数据，保存至列表中
+    all_org_data = get_test_data(testDataFile, org_user_sheet_name)
+    changed_org_user_id_list = get_test_data_and_change_id(all_org_data, query_org_user_id_list, restore_org_user_list)
+    # print("修改后的机构用户信息：", changed_org_user_id_list)
+    return changed_org_user_id_list
+
+
+# 获取订单详情
+def get_order_bpmnInstId():
+    sheet_name = "orderDetail"
+    order_bpmnInstId = get_test_data(testDataFile, sheet_name)
+    # print(order_bpmnInstId)
+    return order_bpmnInstId
+
+
 if __name__ == "__main__":
-    change_org_test_info()
-    # from basicMethod.useMysql import del_org_data, del_role_data, del_position_data
-    #
+    # add_default_org_user_info()
+    # add_default_position_info()
+    # change_org_user_test_info()
+    get_order_bpmnInstId()
+    # add_default_role_info()
+    # change_org_test_info()
+
     # # 删除机构、角色、岗位信息
     # del_org_data()
     # del_role_data()

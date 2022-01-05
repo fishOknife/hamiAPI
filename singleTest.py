@@ -2,21 +2,31 @@ import requests
 import base64
 import json
 import pandas as pd
-from basicMethod.useExcel import get_excel_data
-
-header_info = {
-    "X-TENANT-ID": "hami",
-    # "knfie4j-gateway-request": "0936def8491d5e70510aed4ccd8c5e53",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36",
-    # "token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJhZG1pbiIsInN1YiI6IntcImFjY291bnRcIjpcImFkbWluXCIsXCJjcmVhdGVkQnlcIjpcInN5c3RlbVwiLFwiY3JlYXRlZERhdGVcIjoxNjMwNTYzMzQzMDAwLFwiaWRcIjoxLFwibG9naW5JZFwiOlwiOTFkZGZkOWUtZmJjOS00ZDdhLWI3OTktZDBiNjEyZGQxMDQ4XCIsXCJvcGVuSWRcIjpcIlwiLFwib3JnSWRcIjozMyxcIm9yZ05hbWVcIjpcIuWTiOWvhumTtuihjFwiLFwicGFzc3dvcmRcIjpcImMzMjg0ZDBmOTQ2MDZkZTFmZDJhZjE3MmFiYTE1YmYzXCIsXCJyb2xlc1wiOlt7XCJpZFwiOjEsXCJyb2xlQ29kZVwiOlwiQURNSU5cIixcInJvbGVOYW1lXCI6XCLnrqHnkIblkZhcIn1dLFwic3RhdHVzXCI6MSxcInRlbmFudElkXCI6XCJEUlNcIixcInR5cGVcIjowLFwidXBkYXRlZEJ5XCI6XCJzeXN0ZW1cIixcInVwZGF0ZWREYXRlXCI6MTYzMDU2MzM0MzAwMCxcInVzZXJOYW1lXCI6XCLotoXnuqfnrqHnkIblkZhcIn0iLCJpc3MiOiJzeXN0ZW0iLCJpYXQiOjE2NDAwNjUzNzYsImV4cCI6MTY0MDE1MTc3Nn0.8zwMScLx6mTCZUylv39jVz0QwXopYsOLPXvxv84NMcg"
-}
+import configparser
+import pymysql
 
 
-# filePath = r"C:\Users\admin\Desktop\哈密\HMAPITest\testData\testData.xlsx"
-# sheetName = "addOrgInfo"
-# df = pd.read_excel(filePath, sheetName, keep_default_na=False, usecols=[4, 5])
-# list_data = df.values.tolist()
-# print(list_data[0][0])
+# 创建数据库链接
+def connMysql():
+    conf = configparser.ConfigParser()
+    conf.read("config.ini", encoding="utf-8")
+    host = conf.get("mysql", "host")
+    port = conf.getint("mysql", "port")
+    user = conf.get("mysql", "user")
+    pw = conf.get("mysql", "password")
+    db = "hami_db_stg"
+    print(host)
+    conn = pymysql.connect(host=host, port=port, user=user, password=pw, db=db)
+    cursor = conn.cursor()
+    return conn, cursor
+
+connMysql()
+
+# conf = configparser.ConfigParser()
+# conf.read("config.ini", encoding="utf-8")
+# headers = dict(conf.items("header"))
+# print(headers)
+
 
 # 获取消息通知
 def getWarnNotice(id):
@@ -24,7 +34,7 @@ def getWarnNotice(id):
     params = {
         "id": id
     }
-    res = requests.get(url=getWarnNoticeURL, headers=header_info, params=params)
+    res = requests.get(url=getWarnNoticeURL, headers=header, params=params)
     print(res.request.url)
     return res.text
 
@@ -37,7 +47,7 @@ def getWarnNotice(id):
 def getAllOrgInfo():
     getOrgURL = "http://hami-test.tobowork.com:8026/stg/v1/system/org/pageOrg"
     data = {}
-    res = requests.post(url=getOrgURL, headers=header_info, json=data)
+    res = requests.post(url=getOrgURL, headers=header, json=data)
     return res.text
 
 
@@ -54,7 +64,7 @@ def addOneOrg():
     data = list_data[0][0]
     jsonData = json.loads(data)
     print(type(data))
-    res = requests.post(url=addOneOrgURL, headers=header_info, json=jsonData)
+    res = requests.post(url=addOneOrgURL, headers=header, json=jsonData)
     return res.text
 
 
@@ -72,7 +82,7 @@ def updateOrgInfo():
         # "discription": "",
         # "type": 1
     }
-    res = requests.post(url=updateOrgURL, headers=header_info, json=data)
+    res = requests.post(url=updateOrgURL, headers=header, json=data)
     return res.text
 
 
@@ -84,7 +94,7 @@ def delOrgInfo(orgID):
     delOrgURL = "http://hami-test.tobowork.com:8026/stg/v1/system/org/deleteOrg"
     # 机构id75为“西北研究院”
     params = {"orgId": orgID}
-    res = requests.get(url=delOrgURL, headers=header_info, params=params)
+    res = requests.get(url=delOrgURL, headers=header, params=params)
     print(res.request.url)
     return res.text
 
@@ -95,9 +105,9 @@ def delOrgInfo(orgID):
 # ================岗位================
 # 获取订单节点信息
 def getNodeInfo():
-    getNodeInfoURL = "http://hami-test.tobowork.com:8026/api/v1/bussiness/workflow/flowDetailWithNodeStatus"
-    params = {"bpmnInstId": "10000003672323"}
-    res = requests.get(url=getNodeInfoURL, headers=header_info, params=params)
+    getNodeInfoURL = "http://hami-test.tobowork.com:8026/stg/v1/bussiness/workflow/processHandle/getVerifyHistoryByFlowId"
+    params = {"bpmnInstId": "10000003920283"}
+    res = requests.post(url=getNodeInfoURL, headers=header, params=params)
     print(res.text)
     return res.text
 
@@ -108,7 +118,7 @@ def getNodeInfo():
 # 获取字典信息
 def getDirInfo():
     getDirURL = "http://hami-test.tobowork.com:8026/api/v1/system/tbflow/tbflow/dic/getByDicType"
-    res = requests.get(getDirURL, header_info)
+    res = requests.get(getDirURL, header)
     print(res.text)
     return res.text
 
@@ -119,7 +129,7 @@ def getDirInfo():
 # 获取代办列表
 def getPindingMatters():
     pendingMattersURL = "http://hami-test.tobowork.com:8026/api/v1/tbflow/tbflow/receivedProcess/pendingJson"
-    res = requests.get(url=pendingMattersURL, headers=header_info)
+    res = requests.get(url=pendingMattersURL, headers=header)
     print(res.request.url)
     print(res.text)
     return res.text
@@ -143,7 +153,7 @@ def ocrIdentity():
         "type": "0"
     }
 
-    res = requests.post(url=OCRIDCardURL, headers=header_info, json=data)
+    res = requests.post(url=OCRIDCardURL, headers=header, json=data)
 
     return res.text
 
@@ -165,7 +175,7 @@ def addUserInfo():
         "status": "1"
     }
 
-    res = requests.post(url=addUserURL, headers=header_info, json=userInfo)
+    res = requests.post(url=addUserURL, headers=header, json=userInfo)
 
     return res.text
 
@@ -173,14 +183,25 @@ def addUserInfo():
 # userInfo = addUserInfo()
 # print(userInfo)
 
-login_data = {
-    "account": "admin",
-    "password": "21232f297a57a5a743894a0e4a801fc3",
-    "codeKey": "b307fff8-21c4-4db0-aec0-b4d9d7a9c8a0",
-    "verifyCode": "ylsi",
-    "systemFlag": "pc"
-}
+# login_data = {
+#     "account": "admin",
+#     "password": "21232f297a57a5a743894a0e4a801fc3",
+#     "codeKey": "b307fff8-21c4-4db0-aec0-b4d9d7a9c8a0",
+#     "verifyCode": "ylsi",
+#     "systemFlag": "pc"
+# }
+#
+# res = requests.post(url="http://hami-test.tobowork.com:8026/stg/v1/system/user/login", headers=header,
+#                     json=login_data)
+# print(res.text)
 
-res = requests.post(url="http://hami-test.tobowork.com:8026/stg/v1/system/user/login", headers=header_info,
-                    json=login_data)
-print(res.text)
+# 获取订单详情（bpmnInstId为工作流的bpm_pro_inst的BPMN_INST_ID_字段）
+def get_order_detail():
+    get_order_detail_url = "http://hami-test.tobowork.com:8026/stg/v1/bussiness/workflow/processHandle/getFormAndData"
+    data = {
+        "bpmnInstId": "10000003920283"
+    }
+    res = requests.post(url=get_order_detail_url, headers=header, json=data)
+    print("订单详情：", res.text)
+
+# get_order_detail()
